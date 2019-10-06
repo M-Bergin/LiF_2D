@@ -1,1 +1,1 @@
-Run the matlab code to generate the figures. Care must be taken to ensure that the path to the data file in this folder is correct.
+Run the matlab code to compare the solid angle of the detector aperture to the exprimental data collected from a diffuse scatterer. Care must be taken to ensure that the path to the data file in this folder is correct.
