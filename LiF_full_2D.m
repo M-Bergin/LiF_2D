@@ -17,7 +17,7 @@ r_ap=0.5e-3;
 %z positions to calculate
 z_min=1e-3; %z in m
 z_max=8e-3;
-N_z=100; %Number of points
+N_z=100; %Number of points, increase to 1000 for better quality
 
 
 %%%%%%%%%% Creation of scattering distribution in k space %%%%%%%%%%
