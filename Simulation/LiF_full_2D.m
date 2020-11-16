@@ -6,18 +6,20 @@
 %Parameters
 lambda=6.63e-34/(sqrt(5*4*1.67e-27*1.38e-23*(273+25)));
 theta_in=45;
-phi_in=45-59;
+phi_in=0;%45-59;
 alph=0.5; %Flux in diffuse component
 
 %Detector aperture dimensions
-x_ap_mid=sqrt(2)*3e-3;
+x_ap_mid=3.5e-3*2;%sqrt(2)*3e-3;
 y_ap_mid=0;
-r_ap=0.5e-3;
+r_ap=0.25e-3;
 
+%Offset of aperture from pinhole plate
+z_offset=1.5e-3;
 %z positions to calculate
-z_min=1e-3; %z in m
-z_max=8e-3;
-N_z=100; %Number of points, increase to 1000 for better quality
+z_min=1.5e-3; %z in m
+z_max=12e-3;
+N_z=200; %Number of points, increase to 1000 for better quality
 
 
 %%%%%%%%%% Creation of scattering distribution in k space %%%%%%%%%%
@@ -96,13 +98,13 @@ I_tot(imag_inds)=0;
 
 
 %Setup
-z_vec=linspace(z_min,z_max,N_z); 
+z_vec=linspace(z_min,z_max,N_z);
 I_z=NaN*zeros(N_z,1);
 I_z_diff=NaN*zeros(N_z,1);
 k_corr_fact=NaN*zeros(N_z,1);
 
 %Set up plotting
-figure;
+f_h=figure;
 subplot(1,2,1)
 imagesc((I_tot))
 set(gca,'Yticklabel',[])
@@ -113,15 +115,18 @@ axis equal tight
 xlabel('k_x')
 ylabel('k_y')
 hold on
-h_p1=plot(0,0,'r.');
+h_p1=plot(0,0,'r.','MarkerSize',12);
+%set(gca,'FontSize',24,'LineWidth',3)
 subplot(1,2,2)
-h_p2=plot(z_vec,I_z);
+h_p2=plot(z_vec-z_offset,I_z,'LineWidth',3);
 hold on
-h_p3=plot(z_vec,I_z);
+h_p3=plot(z_vec-z_offset,I_z,'LineWidth',3);
 xlabel('z/m')
 ylabel('Relative intensity')
-xlim([z_vec(1) z_vec(end)])
-%ylim([0 0.2])
+xlim([z_vec(1) z_vec(end)]-z_offset)
+ylim([0 0.08])
+%set(gca,'FontSize',24,'LineWidth',3)
+%f_h.WindowState='fullscreen';
 
 %Main loop
 for n_z=1:N_z
@@ -180,6 +185,9 @@ for n_z=1:N_z
     h_p3.YData=I_z_diff;
     drawnow
     
+    %Create a video
+    %F(n_z) = getframe(gcf);
+    
     
     
     %bw=bwboundaries(I_b);
@@ -192,6 +200,10 @@ end
 %theta=atand((3e-3*sqrt(2)-z_vec)./z_vec);
 
 
+% write the frames to file
+% for i=1:2:length(F)
+%     imwrite(F(i).cdata,['Temp/',num2str(i),'.png'])
+% end
 
 
 
@@ -208,7 +220,7 @@ end
 
 %Repeat above process at specular only
 
-z=3e-3/sqrt(2);
+z=x_ap_mid/2;%3e-3/sqrt(2);
 
 %Find the position on the plate for each k value
 X_pos=real(k_X./k_Z+1)*z;
@@ -250,38 +262,45 @@ N_I=size(I_k);
 
 % hold on
 % plot(edge_ind2*(max(k_x_vec)-min(k_x_vec))/N_I(1)+min(k_x_vec),edge_ind1*(max(k_y_vec)-min(k_y_vec))/N_I(2)+min(k_y_vec),'r.')
-% 
+%
 % fig_h=gcf;
-% 
-% 
+%
+%
 % set(fig_h,'Units','Inches');
 % pos = get(fig_h,'Position');
 % set(fig_h,'PaperPositionMode','Auto','PaperUnits','Inches','PaperSize',[pos(3), pos(4)])
 % set(gca,'FontSize',15,'LineWidth',1)
-% 
+%
 % % print(['C:\Users\mberg\Dropbox\LiF\LiF_diffract_pattern.pdf'],'-dpdf','-r0')
 % % savefig('C:\Users\mberg\Dropbox\LiF\LiF_diffract_pattern.fig')
-% 
-% 
+%
+%
 % % z scan plot
-% 
+%
 % figure;plot(z_vec/1e-3,I_z,'LineWidth',1)
 % hold on
 % plot(z_vec/1e-3,I_z_diff,'LineWidth',1)
-% 
+%
 % xlabel('Sample distance/mm')
 % ylabel('Relative intensity')
-% 
+%
 % set(gca,'FontSize',15,'LineWidth',1)
 % xlim([z_min z_max]/1e-3)
-% 
-% 
+%
+%
 % legend('Full signal','Diffuse signal')
-% 
+%
 % % print -depsc2 C:\Users\mberg\Dropbox\LiF\LiF_simul_z.eps
 % % savefig('C:\Users\mberg\Dropbox\LiF\LiF_simul_z.fig')
 
 
+%%%%%%%%%%%%%%%% Adjust for new pinhole plate %%%%%%%
+
+
+z_vec=z_vec-z_offset;
+
+z_min=z_min-z_offset;
+z_max=z_max-z_offset;
 
 
 %%%%%%%%%%%%%%%% Create paper figure %%%%%%%%%%%%%%%%%
@@ -290,7 +309,7 @@ N_I=size(I_k);
 figure;plot(z_vec/1e-3,I_z,'LineWidth',1.5)
 hold on
 plot(z_vec/1e-3,I_z_diff,'LineWidth',1.5)
-plot([z z]/1e-3,[0 0.08-1e-7],'k--','LineWidth',1.5)
+%plot([z z]/1e-3,[0 max(I_z)],'k--','LineWidth',1.5)
 
 xlabel('z/mm')
 ylabel('Relative intensity')
@@ -321,9 +340,9 @@ p1 = [0.4658,0.534];%[0.3579 0.1046];                         % First Point
 p2 = [0.2037,-0.5494];%[0.2522 -0.3248];                         % Second Point
 dp = p2-p1;                         % Difference
 
-quiver(p1(1),p1(2),dp(1),dp(2),0,'LineWidth',2,'MaxHeadSize',1,'Color','r')
+%quiver(p1(1),p1(2),dp(1),dp(2),0,'LineWidth',2,'MaxHeadSize',1,'Color','r')
 %text(0.12,-0.43,'[011]','FontSize',14,'Color','r');
-text(-0.07,-0.75,'[011]','FontSize',15,'Color','r');
+%text(-0.07,-0.75,'[011]','FontSize',15,'Color','r');
 
 fig_h=gcf;
 
@@ -336,5 +355,7 @@ set(gca,'FontSize',14,'LineWidth',1)
 
 % print(['C:\Users\mberg\Dropbox\LiF\LiF_diffract_pattern_new.pdf'],'-dpdf','-r1000')
 % savefig('C:\Users\mberg\Dropbox\LiF\LiF_diffract_pattern_new.fig')
+
+ %print('C:\Users\mab679\Dropbox\Newcastle\LiF_mid_3_5.png','-dpng','-r1000')
 
 
